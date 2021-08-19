@@ -777,7 +777,7 @@ static int usb_audio_device_init(const struct device *dev)
 	return 0;
 }
 
-static void audio_write_cb(uint8_t ep, int size, void *priv)
+static void audio_write_cb(uint8_t ep, int size, void *priv, int status)
 {
 	struct usb_dev_data *dev_data;
 	struct usb_audio_dev_data *audio_dev_data;
@@ -793,13 +793,21 @@ static void audio_write_cb(uint8_t ep, int size, void *priv)
 	 * User is responsible for freeing the buffer.
 	 * In case no callback is installed free the buffer.
 	 */
+    if(status != -ECANCELED){
 	if (audio_dev_data->ops && audio_dev_data->ops->data_written_cb) {
 		audio_dev_data->ops->data_written_cb(dev_data->dev,
 						     buffer, size);
 	} else {
 		/* Release net_buf back to the pool */
+            //LOG_INF("Buffer %p unref\n", buffer->data);
 		net_buf_unref(buffer);
 	}
+    } else {
+        if(audio_dev_data->ops && audio_dev_data->ops->transfer_cancel_cb){
+            audio_dev_data->ops->transfer_cancel_cb(dev_data->dev,
+                                buffer, size);
+        }
+    }
 }
 
 int usb_audio_send(const struct device *dev, struct net_buf *buffer,
@@ -828,9 +836,9 @@ int usb_audio_send(const struct device *dev, struct net_buf *buffer,
 	/** buffer passed to *priv because completion callback
 	 * needs to release it to the pool
 	 */
-	usb_transfer(ep, buffer->data, len, USB_TRANS_WRITE | USB_TRANS_NO_ZLP,
+	int ret = usb_transfer(ep, buffer->data, len, USB_TRANS_WRITE | USB_TRANS_NO_ZLP,
 		     audio_write_cb, buffer);
-	return 0;
+	return ret;
 }
 
 size_t usb_audio_get_in_frame_size(const struct device *dev)

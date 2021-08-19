@@ -828,6 +828,8 @@ int usb_dc_ep_disable(const uint8_t ep)
 		return -EIO;
 	}
 
+    usb_dc_ep_flush(ep);
+
 	return 0;
 }
 
@@ -875,6 +877,8 @@ int usb_dc_ep_write(const uint8_t ep, const uint8_t *const data,
 		 */
 		usb_dc_ep_start_read(ep, NULL, 0);
 	}
+
+    k_sem_give(&ep_state->write_sem);
 
 	if (!k_is_in_isr()) {
 		irq_enable(USB_IRQ);
@@ -976,7 +980,7 @@ int usb_dc_ep_flush(const uint8_t ep)
 		return -EINVAL;
 	}
 
-	LOG_ERR("Not implemented");
+    HAL_PCD_EP_Flush(&usb_dc_stm32_state.pcd, ep);
 
 	return 0;
 }

@@ -204,6 +204,21 @@ typedef void (*usb_audio_feature_updated_cb_t)(const struct device *dev,
 					       const struct usb_audio_fu_evt *evt);
 
 /**
+ * @brief Callback type used to inform the app that a transfer has canceled
+ *
+ * @param dev	 The device for which the callback was called.
+ * @param buffer Pointer to the net_buf data chunk that was successfully
+ *		 send/received. If the application uses data_written_cb and/or
+ *		 data_received_cb callbacks it is responsible for freeing the
+ *		 buffer by itself.
+ * @param size	 Amount of data that were successfully send/received.
+ */
+typedef void (*usb_audio_transfer_canceled_cb_t)(const struct device *dev,
+					       struct net_buf *buffer,
+					       size_t size);
+
+
+/**
  * @brief Audio callbacks used to interact with audio devices by user App.
  *
  * usb_audio_ops structure contains all relevant callbacks to interact with
@@ -231,6 +246,8 @@ struct usb_audio_ops {
 
 	/* Callback called when features were modified by the Host */
 	usb_audio_feature_updated_cb_t feature_update_cb;
+
+    usb_audio_transfer_canceled_cb_t transfer_cancel_cb;
 };
 
 /** @brief Get the frame size that is accepted by the Host.

@@ -350,7 +350,7 @@ int usb_ep_read_continue(uint8_t ep);
 /**
  * Callback function signature for transfer completion.
  */
-typedef void (*usb_transfer_callback)(uint8_t ep, int tsize, void *priv);
+typedef void (*usb_transfer_callback)(uint8_t ep, int tsize, void *priv, int status);
 
 /* USB transfer flags */
 #define USB_TRANS_READ       BIT(0)   /** Read transfer flag */

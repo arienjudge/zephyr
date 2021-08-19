@@ -151,9 +151,9 @@ done:
 		k_sem_give(&trans->sem);
 
 		/* Transfer completion callback */
-		if (trans->status != -ECANCELED) {
-			cb(ep, tsize, priv);
-		}
+		//if (trans->status != -ECANCELED) {
+		cb(ep, tsize, priv, trans->status);
+		//}
 	}
 }
 
@@ -202,6 +202,7 @@ int usb_transfer(uint8_t ep, uint8_t *data, size_t dlen, unsigned int flags,
 
 	/* Parallel transfer to same endpoint is not supported. */
 	if (usb_transfer_is_busy(ep)) {
+        LOG_ERR("%s:%d Parallel transfer!\n", __func__, __LINE__);
 		return -EBUSY;
 	}
 
