@@ -1,0 +1,47 @@
+name: 'Synchronise Fork'
+on:
+  schedule:
+    - cron: '0 0 * * MON'
+  workflow_dispatch:
+jobs:
+  update-repo:
+    name: "Update Repo"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.PUSH_SECRET }}
+          ref: aj/main
+          fetch-depth: 0
+      - run: |
+            git remote add upstream https://github.com/zephyrproject-rtos/zephyr.git
+            git remote -v
+            git fetch --all --tags
+            for remote in $(git branch -r | grep -v '\->' | grep 'upstream' | sed 's/upstream\///'); do
+              git branch --track $remote upstream/$remote;
+              git checkout $remote;
+              git pull upstream $remote;
+              git push -u origin --follow-tags --force;
+            done
+  rebase-main:
+    name: "Rebasing aj/main"
+    runs-on: ubuntu-latest
+    needs: update-repo
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.PUSH_SECRET }}
+          ref: aj/main
+          fetch-depth: 0
+      - run: |
+            git remote add upstream https://github.com/zephyrproject-rtos/zephyr.git
+            git remote -v
+            git fetch --all
+            git branch --track main upstream/main
+            git checkout main
+            git push --force origin main
+            git checkout aj/main
+            git config --global user.name 'github-actions[bot]'
+            git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+            git rebase main aj/main
+            git push --force origin aj/main
