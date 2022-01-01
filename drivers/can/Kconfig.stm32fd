@@ -11,7 +11,13 @@ config CAN_STM32FD
 	select CAN_MCAN
 	select USE_STM32_LL_RCC
 
-if CAN_STM32FD
+config CAN_STM32H7
+	bool "STM32 FDCAN driver"
+	default $(dt_compat_enabled,$(DT_COMPAT_STM32_FDCAN))
+	select CAN_MCAN
+	select USE_STM32_LL_RCC
+
+if CAN_STM32FD || CAN_STM32H7
 
 config CAN_MAX_STD_ID_FILTER
 	int "Maximum number of std ID filters"

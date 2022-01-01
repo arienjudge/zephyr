@@ -10,6 +10,8 @@
 #include <stm32_ll_rcc.h>
 #include "can_stm32fd.h"
 #include <pinmux/pinmux_stm32.h>
+#include <drivers/clock_control.h>
+#include <drivers/clock_control/stm32_clock_control.h>
 
 #include <logging/log.h>
 LOG_MODULE_DECLARE(can_driver, CONFIG_CAN_LOG_LEVEL);
@@ -30,20 +32,22 @@ int can_stm32fd_get_core_clock(const struct device *dev, uint32_t *rate)
 
 	if (rate_tmp == LL_RCC_PERIPH_FREQUENCY_NO) {
 		LOG_ERR("Can't read core clock");
-		return -EIO;
+	 	return -EIO;
 	}
 
 	*rate = rate_tmp / CONFIG_CAN_STM32_CLOCK_DIVISOR;
+
+	LOG_DBG("%s: rate=%d", __func__, *rate);
 
 	return 0;
 }
 
 void can_stm32fd_clock_enable(void)
 {
-	LL_RCC_SetFDCANClockSource(LL_RCC_FDCAN_CLKSOURCE_PCLK1);
+	LL_RCC_SetFDCANClockSource(LL_RCC_FDCAN_CLKSOURCE_PLL1Q);
 	__HAL_RCC_FDCAN_CLK_ENABLE();
 
-	FDCAN_CONFIG->CKDIV = CONFIG_CAN_STM32_CLOCK_DIVISOR >> 1;
+	// FDCAN_CONFIG->CKDIV = CONFIG_CAN_STM32_CLOCK_DIVISOR >> 1;
 }
 
 void can_stm32fd_register_state_change_isr(const struct device *dev,
@@ -54,9 +58,18 @@ void can_stm32fd_register_state_change_isr(const struct device *dev,
 	data->mcan_data.state_change_isr = isr;
 }
 
+static inline void __can_stm32fd_get_clock(const struct device *dev)
+{
+	struct can_stm32fd_data *data = DEV_DATA(dev);
+	const struct device *clk = DEVICE_DT_GET(STM32_CLOCK_CONTROL_NODE);
+
+	data->clock = clk;
+}
+
 static int can_stm32fd_init(const struct device *dev)
 {
 	const struct can_stm32fd_config *cfg = DEV_CFG(dev);
+	struct can_stm32fd_data *data = DEV_DATA(dev);
 	const struct can_mcan_config *mcan_cfg = &cfg->mcan_cfg;
 	struct can_mcan_data *mcan_data = &DEV_DATA(dev)->mcan_data;
 	struct can_mcan_msg_sram *msg_ram = cfg->msg_sram;
@@ -72,6 +85,11 @@ static int can_stm32fd_init(const struct device *dev)
 	}
 
 	can_stm32fd_clock_enable();
+	// __can_stm32fd_get_clock(dev);
+	// if (clock_control_on(data->clock,
+	// 		(clock_control_subsys_t *)&cfg->pclken) != 0) {
+	// 	return -EIO;
+	// }
 	ret = can_mcan_init(dev, mcan_cfg, msg_ram, mcan_data);
 	if (ret) {
 		return ret;
@@ -269,6 +287,9 @@ static const struct can_stm32fd_config can_stm32fd_cfg_##inst = {              \
 		.ts2 = DT_INST_PROP_OR(inst, phase_seg2, 0),                   \
 	},                                                                     \
 	.pinctrl = ST_STM32_DT_INST_PINCTRL(inst, 0),                          \
+	.pclken = { .bus = DT_INST_CLOCKS_CELL(inst, bus),		\
+		    .enr = DT_INST_CLOCKS_CELL(inst, bits)		\
+	}, \
 };
 
 #endif /* CONFIG_CAN_FD_MODE */

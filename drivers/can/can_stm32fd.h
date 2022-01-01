@@ -10,6 +10,7 @@
 
 #include "can_mcan.h"
 #include <pinmux/pinmux_stm32.h>
+#include <drivers/clock_control/stm32_clock_control.h>
 
 #define DEV_DATA(dev) ((struct can_stm32fd_data *)(dev)->data)
 #define DEV_CFG(dev) ((const struct can_stm32fd_config *)(dev)->config)
@@ -20,10 +21,13 @@ struct can_stm32fd_config {
 	struct can_mcan_config mcan_cfg;
 	/* CAN always has an RX and TX pin. Hence, hardcode it to two*/
 	const struct soc_gpio_pinctrl pinctrl[2];
+	/* clock subsystem driving this peripheral */
+	struct stm32_pclken pclken;
 };
 
 struct can_stm32fd_data {
 	struct can_mcan_data mcan_data;
+	const struct device *clock;
 };
 
 #endif /*ZEPHYR_DRIVERS_CAN_STM32FD_H_*/

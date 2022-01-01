@@ -23,6 +23,22 @@ LOG_MODULE_DECLARE(can_driver, CONFIG_CAN_LOG_LEVEL);
 #define MCAN_MAX_DLC CAN_MAX_DLC
 #endif
 
+#if CONFIG_HAS_CMSIS_CORE_M
+#include <arch/arm/aarch32/cortex_m/cmsis.h>
+
+#if __DCACHE_PRESENT == 1
+#define CACHE_INVALIDATE(addr, size) SCB_InvalidateDCache_by_Addr((addr), (size))
+#define CACHE_CLEAN(addr, size) SCB_CleanDCache_by_Addr((addr), (size))
+#else
+#define CACHE_INVALIDATE(addr, size)
+#define CACHE_CLEAN(addr, size) __DSB()
+#endif /* __DCACHE_PRESENT == 1 */
+
+#else /* CONFIG_HAS_CMSIS_CORE_M */
+#define CACHE_INVALIDATE(addr, size)
+#define CACHE_CLEAN(addr, size)
+#endif /* CONFIG_HAS_CMSIS_CORE_M */
+
 static int can_exit_sleep_mode(struct can_mcan_reg *can)
 {
 	uint32_t start_time;
@@ -253,19 +269,19 @@ int can_mcan_init(const struct device *dev, const struct can_mcan_config *cfg,
 		(can->crel & CAN_MCAN_CREL_DAY) >> CAN_MCAN_CREL_DAY_POS);
 
 #ifndef CONFIG_CAN_STM32FD
-	can->sidfc = ((uint32_t)msg_ram->std_filt & CAN_MCAN_SIDFC_FLSSA_MSK) |
+	can->sidfc = (((uint32_t)msg_ram->std_filt - (uint32_t)msg_ram) & CAN_MCAN_SIDFC_FLSSA_MSK) |
 		     (ARRAY_SIZE(msg_ram->std_filt) << CAN_MCAN_SIDFC_LSS_POS);
-	can->xidfc = ((uint32_t)msg_ram->ext_filt & CAN_MCAN_XIDFC_FLESA_MSK) |
+	can->xidfc = (((uint32_t)msg_ram->ext_filt - (uint32_t)msg_ram) & CAN_MCAN_XIDFC_FLESA_MSK) |
 		     (ARRAY_SIZE(msg_ram->ext_filt) << CAN_MCAN_XIDFC_LSS_POS);
-	can->rxf0c = ((uint32_t)msg_ram->rx_fifo0 & CAN_MCAN_RXF0C_F0SA) |
+	can->rxf0c = (((uint32_t)msg_ram->rx_fifo0 - (uint32_t)msg_ram) & CAN_MCAN_RXF0C_F0SA) |
 		     (ARRAY_SIZE(msg_ram->rx_fifo0) << CAN_MCAN_RXF0C_F0S_POS);
-	can->rxf1c = ((uint32_t)msg_ram->rx_fifo1 & CAN_MCAN_RXF1C_F1SA) |
+	can->rxf1c = (((uint32_t)msg_ram->rx_fifo1 - (uint32_t)msg_ram) & CAN_MCAN_RXF1C_F1SA) |
 		     (ARRAY_SIZE(msg_ram->rx_fifo1) << CAN_MCAN_RXF1C_F1S_POS);
-	can->rxbc = ((uint32_t)msg_ram->rx_buffer & CAN_MCAN_RXBC_RBSA);
-	can->txefc = ((uint32_t)msg_ram->tx_event_fifo & CAN_MCAN_TXEFC_EFSA_MSK) |
+	can->rxbc = (((uint32_t)msg_ram->rx_buffer - (uint32_t)msg_ram) & CAN_MCAN_RXBC_RBSA);
+	can->txefc = (((uint32_t)msg_ram->tx_event_fifo - (uint32_t)msg_ram) & CAN_MCAN_TXEFC_EFSA_MSK) |
 		     (ARRAY_SIZE(msg_ram->tx_event_fifo) <<
 		     CAN_MCAN_TXEFC_EFS_POS);
-	can->txbc = ((uint32_t)msg_ram->tx_buffer & CAN_MCAN_TXBC_TBSA) |
+	can->txbc = (((uint32_t)msg_ram->tx_buffer - (uint32_t)msg_ram) & CAN_MCAN_TXBC_TBSA) |
 		    (ARRAY_SIZE(msg_ram->tx_buffer) << CAN_MCAN_TXBC_TFQS_POS);
 	if (sizeof(msg_ram->tx_buffer[0].data) <= 24) {
 		can->txesc = (sizeof(msg_ram->tx_buffer[0].data) - 8) / 4;
@@ -379,6 +395,9 @@ int can_mcan_init(const struct device *dev, const struct can_mcan_config *cfg,
 	/* Interrupt on every TX fifo element*/
 	can->txbtie = CAN_MCAN_TXBTIE_TIE;
 
+	memset(msg_ram, 0, sizeof(struct can_mcan_msg_sram));
+	CACHE_CLEAN(msg_ram, sizeof(struct can_mcan_msg_sram));
+
 	ret = can_leave_init_mode(can, K_MSEC(CAN_INIT_TIMEOUT));
 	if (ret) {
 		LOG_ERR("Failed to leave init mode");
@@ -420,11 +439,15 @@ static void can_mcan_tc_event_handler(struct can_mcan_reg *can,
 	while (can->txefs & CAN_MCAN_TXEFS_EFFL) {
 		event_idx = (can->txefs & CAN_MCAN_TXEFS_EFGI) >>
 			    CAN_MCAN_TXEFS_EFGI_POS;
+
+		CACHE_INVALIDATE(&msg_ram->tx_event_fifo[event_idx],
+				 sizeof(struct can_mcan_tx_event_fifo));
 		tx_event = &msg_ram->tx_event_fifo[event_idx];
 		tx_idx = tx_event->mm.idx;
 		/* Acknowledge TX event */
 		can->txefa = event_idx;
 
+		LOG_DBG("TX Complete");
 		k_sem_give(&data->tx_sem);
 
 		tx_cb = data->tx_fin_cb[tx_idx];
@@ -441,7 +464,7 @@ void can_mcan_line_0_isr(const struct can_mcan_config *cfg,
 			 struct can_mcan_data *data)
 {
 	struct can_mcan_reg *can = cfg->can;
-
+	LOG_DBG("LINE 0 ISR");
 	do {
 		if (can->ir & (CAN_MCAN_IR_BO | CAN_MCAN_IR_EP |
 			       CAN_MCAN_IR_EW)) {
@@ -491,6 +514,10 @@ static void can_mcan_get_message(struct can_mcan_data *data,
 	while ((*fifo_status_reg & CAN_MCAN_RXF0S_F0FL)) {
 		get_idx = (*fifo_status_reg & CAN_MCAN_RXF0S_F0GI) >>
 			   CAN_MCAN_RXF0S_F0GI_POS;
+
+		CACHE_INVALIDATE(&fifo[get_idx].hdr,
+				 sizeof(struct can_mcan_rx_fifo_hdr));
+
 		hdr = fifo[get_idx].hdr;
 
 		if (hdr.xtd) {
@@ -521,6 +548,8 @@ static void can_mcan_get_message(struct can_mcan_data *data,
 
 		data_length = can_dlc_to_bytes(frame.dlc);
 		if (data_length <= sizeof(frame.data)) {
+			CACHE_INVALIDATE(fifo[get_idx].data_32,
+					 ROUND_UP(data_length, sizeof(uint32_t)));
 			/* data needs to be written in 32 bit blocks!*/
 			for (src = fifo[get_idx].data_32,
 			     dst = frame.data_32,
@@ -561,7 +590,7 @@ void can_mcan_line_1_isr(const struct can_mcan_config *cfg,
 			 struct can_mcan_data *data)
 {
 	struct can_mcan_reg *can = cfg->can;
-
+	LOG_DBG("LINE 1 ISR");
 	do {
 		if (can->ir & CAN_MCAN_IR_RF0N) {
 			can->ir  = CAN_MCAN_IR_RF0N;
@@ -703,6 +732,9 @@ int can_mcan_send(const struct can_mcan_config *cfg,
 		*dst = *src;
 	}
 
+	CACHE_CLEAN(&msg_ram->tx_buffer[put_idx].hdr, sizeof(tx_hdr));
+	CACHE_CLEAN(&msg_ram->tx_buffer[put_idx].data_32, ROUND_UP(data_length, 4));
+
 	data->tx_fin_cb[put_idx] = callback;
 	data->tx_fin_cb_arg[put_idx] = callback_arg;
 
@@ -759,6 +791,9 @@ int can_mcan_attach_std(struct can_mcan_data *data,
 						 CAN_MCAN_FCE_FIFO0;
 
 	msg_ram->std_filt[filter_nr] = filter_element;
+
+	CACHE_CLEAN(&msg_ram->std_filt[filter_nr],
+		    sizeof(struct can_mcan_std_filter));
 
 	k_mutex_unlock(&data->inst_mutex);
 
@@ -818,6 +853,9 @@ static int can_mcan_attach_ext(struct can_mcan_data *data,
 						 CAN_MCAN_FCE_FIFO0;
 
 	msg_ram->ext_filt[filter_nr] = filter_element;
+
+	CACHE_CLEAN(&msg_ram->ext_filt[filter_nr],
+		    sizeof(struct can_mcan_ext_filter));
 
 	k_mutex_unlock(&data->inst_mutex);
 
@@ -883,9 +921,13 @@ void can_mcan_detach(struct can_mcan_data *data,
 		}
 
 		msg_ram->ext_filt[filter_nr] = ext_filter;
+		CACHE_CLEAN(&msg_ram->ext_filt[filter_nr],
+			    sizeof(struct can_mcan_ext_filter));
 		data->rx_cb_ext[filter_nr] = NULL;
 	} else {
 		msg_ram->std_filt[filter_nr] = std_filter;
+		CACHE_CLEAN(&msg_ram->std_filt[filter_nr],
+			    sizeof(struct can_mcan_std_filter));
 		data->rx_cb_std[filter_nr] = NULL;
 	}
 
