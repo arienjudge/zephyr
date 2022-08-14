@@ -1,0 +1,9 @@
+# PSoC4 Pioneer Kit configuration
+
+# Copyright (c) 2018 Cypress
+# Copyright (c) 2020 ATL Electronics
+# SPDX-License-Identifier: Apache-2.0
+
+config BOARD_CY8CKIT_042_M0
+	bool "PSoC4 Pioneer Kit [M0 CPU0]"
+	depends on SOC_PART_NUMBER_CY8C4247AZI_M485
