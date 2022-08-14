@@ -136,6 +136,13 @@ config HWINFO_PSOC6
 	help
 	  Enable Cypress PSoC-6 hwinfo driver.
 
+config HWINFO_PSOC4
+	bool "Cypress PSoC-4 unique device ID"
+	default y
+	depends on SOC_FAMILY_PSOC4
+	help
+	  Enable Cypress PSoC-4 hwinfo driver.
+
 config HWINFO_GECKO
 	bool "GECKO hwinfo"
 	default y
