@@ -21,6 +21,23 @@ config SOC_PSOC6_M4
 
 endchoice
 
+choice
+	prompt "Cypress PSoC4 MCU Selection"
+	depends on SOC_SERIES_PSOC42
+
+config SOC_PSOC4_M0
+	bool "SOC_PSOC4_M0"
+	select CPU_CORTEX_M0
+	select CPU_CORTEX_M_HAS_SYSTICK
+
+config SOC_PSOC4_M0PLUS
+	bool "SOC_PSOC4_M0PLUS"
+	select CPU_CORTEX_M0PLUS
+	select CPU_CORTEX_M_HAS_SYSTICK
+	select CPU_CORTEX_M_HAS_VTOR
+
+endchoice
+
 config SOC_PSOC6_M0_ENABLES_M4
 	bool "Dual-core support [activate Cortex-M4]"
 	depends on SOC_PSOC6_M0
@@ -36,6 +53,20 @@ config SOC_FAMILY
 	string
 	default "cypress"
 
-source "soc/arm/cypress/*/Kconfig.soc"
+source "soc/arm/cypress/psoc6/Kconfig.soc"
 
 endif # SOC_FAMILY_PSOC6
+
+
+config SOC_FAMILY_PSOC4
+	bool
+
+if SOC_FAMILY_PSOC4
+
+config SOC_FAMILY
+	string
+	default "cypress"
+
+source "soc/arm/cypress/psoc4/Kconfig.soc"
+
+endif # SOC_FAMILY_PSOC4
