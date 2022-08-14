@@ -103,4 +103,4 @@ config USE_INFINEON_PWM
 	  Enable Pulse Width Modulator (PWM) HAL module
 	  driver for Infineon devices
 
-endif # SOC_FAMILY_PSOC6
+endif # SOC_FAMILY_PSOC4

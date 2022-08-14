@@ -31,7 +31,7 @@ zephyr_library_sources_ifdef(CONFIG_USE_INFINEON_PWM      ${pdl_drv_dir}/source/
 #zephyr_library_sources_ifdef(CONFIG_USE_INFINEON_LPTIMER  ${pdl_drv_dir}/source/cy_mcwdt.c) -- no mcwdt in cat2? replace with cy_wdc??
 #zephyr_library_sources_ifdef(CONFIG_USE_INFINEON_RTC      ${pdl_drv_dir}/source/cy_rtc.c) -- no rtc in cat2?
 #zephyr_library_sources_ifdef(CONFIG_USE_INFINEON_SDIO     ${pdl_drv_dir}/source/cy_sd_host.c)
-zephyr_library_sources_ifdef(CONFIG_SOC_FAMILY_PSOC6      ${pdl_drv_dir}/source/cy_sysint.c)
+zephyr_library_sources_ifdef(CONFIG_SOC_FAMILY_PSOC4      ${pdl_drv_dir}/source/cy_sysint.c)
 
 if(CONFIG_USE_INFINEON_TRNG)
   zephyr_library_sources(${pdl_drv_dir}/source/cy_crypto.c)
