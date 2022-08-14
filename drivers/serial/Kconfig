@@ -168,6 +168,8 @@ source "drivers/serial/Kconfig.sam0"
 
 source "drivers/serial/Kconfig.psoc6"
 
+source "drivers/serial/Kconfig.psoc4"
+
 source "drivers/serial/Kconfig.pl011"
 
 source "drivers/serial/Kconfig.rv32m1_lpuart"
