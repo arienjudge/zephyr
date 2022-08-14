@@ -9,9 +9,9 @@ Introduce psoc 4 support by slowly following file changes as in
 4. Keep track of https://github.com/zephyrproject-rtos/zephyr/pull/44211
 
 
-
+----------------------------------------
 24/6/2022
-
+----------------------------------------
 Added mtb-pdl-cat2 to hal_infineon repo. Started building necessary build scripts in `zephyr/modules/hal_infineon`.
 Some key differences. No `cy_device.c` in mtb-pdl-cat2, so might need to do this device bring up/init elsewhere if needed.
 Some variations in peripheral sets. See comments in mtb-pdl-cat2 CMake file.
@@ -20,3 +20,60 @@ Search for `KConfig.psoc6` for examples.
 
 Also need to add `SOC_FAMILY_PSOC4` to `soc/arm/cypress` as done for `SOC_FAMILY_PSOC6`, and any relevant `KConfig.series` files.
 
+
+----------------------------------------
+31/7/2022
+----------------------------------------
+Noticed no device header for CY8C4247AZI..... will need to assemble and confirm functionality of existing driver files with this part.
+
+Added KConfig.soc, KConfig.series and KConfig.defconfig.series to `soc/arm/cypress/psoc4`.
+Modified `soc/arm/cypress/KConfig` to enable psoc4
+Started adding `boards/arm/cy8ckit_042`. Some files incomplete
+
+TODO:
+  * Need to check `soc/arm/cypress/psoc4/soc.c` implementation is valid.
+  * Need to implement `soc/arm/cypress/common/cypress_psoc6_dt.h` equivalent for psoc4 and review soc_gpio.c entries
+  * Need to pull up board schematics to define board devicetree. Focus on selecting an appropriate UART for hello world example.
+  * Need to build psoc4 specific dtsi files in `dts/arm/cypress/`
+  * Check openocd configuration for board -- looks like there's a psoc4.cfg availalbe. Trusting it works
+  * Test build
+  * Assemble Zephyr UART driver for psoc4
+  * Set up vector table?
+
+
+
+-----------------------------------------
+10/8/2022
+-----------------------------------------
+Added the following KConfig.psoc4 entries to zephyr driver hals.
+  * "drivers/spi/Kconfig.psoc4"
+  * "drivers/serial/Kconfig.psoc4"
+  * "drivers/spi/Kconfig.psoc4"
+  * "drivers/hwinfo/Kconfig"
+Started adding relevant driver .c files.
+  * gpio -- added `gpio_psoc4.c`, modified from psoc6 flavour.
+  * spi
+  * serial
+  * hwinfo -- added. Doesn't look like psoc6 flavour does anything useful??
+
+-----------------------------------------
+14/8/2022
+-----------------------------------------
+Sarted adding `psoc4200m_config.h`. Some issues around not having relevant cyip files for the right block versions - eg whichever version of the CSD IP is used for the 4200M doesn't have a file in the cat2 pdl. Need to check each peripheral register set 1 by 1.
+  * Updated clock connection settings
+
+Ongoing TODO:
+  * `drivers/gpio`
+    * Need to complete psoc4200*_config.h file to pull in necessary cyip_gpio.h file in pdl2 for GPIO_PRT_Type type definition
+      * Need to go through peripheral configuration as appropriate for 4200M. CSD is wrong version
+    * This config will should be included by relevant cy8c42***.h file, which is selected by the definition check in cy_device_headers.h, selected by the KConfig.soc in the `soc/arm/cypress/psoc4` folder.
+  * `drivers/spi`
+  * `drivers/serial`
+  * Need to check `soc/arm/cypress/psoc4/soc.c` implementation is valid.
+  * Need to implement `soc/arm/cypress/common/cypress_psoc6_dt.h` equivalent for psoc4 and review soc_gpio.c entries
+  * Need to pull up board schematics to define board devicetree. Focus on selecting an appropriate UART for hello world example.
+  * Should lead into fixing up `boards/arm/cy8ckit_042`
+  * Need to build psoc4 specific dtsi files in `dts/arm/cypress/`
+  * Test build
+  * Assemble Zephyr UART driver for psoc4
+  * Set up vector table?
