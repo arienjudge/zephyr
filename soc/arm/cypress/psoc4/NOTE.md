@@ -62,7 +62,33 @@ Started adding relevant driver .c files.
 Sarted adding `psoc4200m_config.h`. Some issues around not having relevant cyip files for the right block versions - eg whichever version of the CSD IP is used for the 4200M doesn't have a file in the cat2 pdl. Need to check each peripheral register set 1 by 1.
   * Updated clock connection settings
 
+-----------------------------------------
+17/8/2022
+-----------------------------------------
+Started adding cy8c4247azi-m485.h
+
+
+-----------------------------------------
+19/9/2022
+-----------------------------------------
+Experimented with kitprog debug interface on openocd and gdb. May switch approach to working on codebase to getting zephyr compiling for the chip first.
+Needed Zadig to install an appropriate WinUSB driver for the kitprog bulk interface.
+Run `openocd -f interface/kitprog.cfg -f target/psoc4.cfg`.
+Run gdb in C:\Program Files (x86)\GNU Arm Embedded Toolchain\10 2020-q4-major\bin as
+* `arm-none-eabi-gdb.exe`
+* `file C:/Users/Arien/Documents/PSoC\ Creator/PSOC4200M_Test/Software_Transmit_UART01.cydsn/CortexM0/ARM_GCC_541/Debug/Software_Transmit_UART01.elf`
+* `target extended-remote 127.0.0.1:3333`
+
+-----------------------------------------
+21/9/2022
+-----------------------------------------
+Renamed CY8CKIT_042 instances to CY8CKIT_044
+Repaired jlink
+
+
 Ongoing TODO:
+  * Replace NUP4114UCW1T2G in jlink
+  * Replace USB-B connector
   * `drivers/gpio`
     * Need to complete psoc4200*_config.h file to pull in necessary cyip_gpio.h file in pdl2 for GPIO_PRT_Type type definition
       * Need to go through peripheral configuration as appropriate for 4200M. CSD is wrong version

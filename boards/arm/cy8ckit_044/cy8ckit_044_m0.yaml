@@ -5,7 +5,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-identifier: cy8ckit_042_m0
+identifier: cy8ckit_044_m0
 name: Cypress PSoC4 Pioneer Kit
 type: mcu
 arch: arm
