@@ -1,0 +1,42 @@
+/*
+ * Copyright (c) 2018, Cypress
+ * Copyright (c) 2020-2021, ATL Electronics
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/dts-v1/;
+
+#include <cypress/psoc4_cm0.dtsi>
+
+/ {
+	model = "Cypress PSoC4-044 Pioneer Kit";
+	compatible = "cypress,cy8c6xx7_cm0", "cypress,psoc4";
+
+	chosen {
+		zephyr,sram = &sram0;
+		zephyr,flash = &flash0;
+	};
+
+	aliases {
+		led3_red = &user_led_red;
+		led3_green = &user_led_green;
+		led3_blue = &user_led_blue;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+		user_led_green: led_3_green {
+			label = "LED_3_GREEN";
+			gpios = <&gpio_prt2 6 GPIO_ACTIVE_LOW>;
+		};
+		user_led_red: led_3_red {
+			label = "LED_3_RED";
+			gpios = <&gpio_prt0 6 GPIO_ACTIVE_LOW>;
+		};
+		user_led_blue: led_3_blue {
+			label = "LED_3_BLUE";
+			gpios = <&gpio_prt6 5 GPIO_ACTIVE_LOW>;
+		};
+	};
+};

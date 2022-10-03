@@ -85,10 +85,21 @@ Run gdb in C:\Program Files (x86)\GNU Arm Embedded Toolchain\10 2020-q4-major\bi
 Renamed CY8CKIT_042 instances to CY8CKIT_044
 Repaired jlink
 
+-----------------------------------------
+29/9/2022
+-----------------------------------------
+added boards\arm\cy8ckit_044\cy8ckit_044_m0.dts
+<!-- added dts\bindings\interrupt-controller\cypress,psoc4-intmux.yaml
+added dts\bindings\interrupt-controller\cypress,psoc4-intmux-ch.yaml -->
+added dts\arm\cypress\psoc4.dtsi WIP
+
+-----------------------------------------
+3/10/2022
+-----------------------------------------
+modified soc.c for stub implementation. Should consider clock settings later.
 
 Ongoing TODO:
-  * Replace NUP4114UCW1T2G in jlink
-  * Replace USB-B connector
+  * Finish dts\arm\cypress\psoc4.dtsi. Compare psoc6.dtsi to TRM and RRM
   * `drivers/gpio`
     * Need to complete psoc4200*_config.h file to pull in necessary cyip_gpio.h file in pdl2 for GPIO_PRT_Type type definition
       * Need to go through peripheral configuration as appropriate for 4200M. CSD is wrong version
