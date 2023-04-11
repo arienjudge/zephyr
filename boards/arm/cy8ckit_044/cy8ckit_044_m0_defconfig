@@ -1,0 +1,11 @@
+#
+# Copyright (c) 2018, Cypress
+# Copyright (c) 2020, ATL Electronics
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+CONFIG_SOC_SERIES_PSOC42=y
+CONFIG_SOC_PSOC4_M0=y
+CONFIG_SOC_PART_NUMBER_CY8C4247AZI_M485=y
+CONFIG_BOARD_CY8CKIT_044_M0=y

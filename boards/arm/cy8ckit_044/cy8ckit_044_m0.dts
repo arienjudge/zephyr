@@ -18,6 +18,7 @@
 		zephyr,flash = &flash0;
 	};
 
+/* 
 	aliases {
 		led3_red = &user_led_red;
 		led3_green = &user_led_green;
@@ -39,4 +40,6 @@
 			gpios = <&gpio_prt6 5 GPIO_ACTIVE_LOW>;
 		};
 	};
+*/
+
 };

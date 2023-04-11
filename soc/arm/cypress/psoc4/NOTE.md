@@ -98,7 +98,15 @@ added dts\arm\cypress\psoc4.dtsi WIP
 -----------------------------------------
 modified soc.c for stub implementation. Should consider clock settings later.
 
+-----------------------------------------
+11/10/2022
+-----------------------------------------
+started adding cyip_srsslt_m.h - up to PWR_KEY_DELAY
+need to figure out what to do with wdt
+
 Ongoing TODO:
+  * Check required definitions for gpio files and create a startup_psoc4200m.c to add a vectortable definition.
+    * may want to consider "zephyr-ising" the _RAM_VECTOR_TABLE. check what happened with psoc6, likely just needs defs in soc.c
   * Finish dts\arm\cypress\psoc4.dtsi. Compare psoc6.dtsi to TRM and RRM
   * `drivers/gpio`
     * Need to complete psoc4200*_config.h file to pull in necessary cyip_gpio.h file in pdl2 for GPIO_PRT_Type type definition
@@ -114,3 +122,49 @@ Ongoing TODO:
   * Test build
   * Assemble Zephyr UART driver for psoc4
   * Set up vector table?
+
+
+
+
+
+
+  Checking cypress ip blocks:
+
+cyip_can.h
+cyip_cpuss_v3.h?? - missing protection-wounding + priv_ram-> mtb_ctl only 3 SL_CTL
+cyip_ctbm.h - missing dft_ctrl
+cyip_dmac_v3.h
+cyip_gpio.h - no SIO, no DS, no FILT_CONFIG, no VREFGEN
+cyip_hsiom.h - no pump_ctl, 
+cyip_lcd_v2.h
+cyip_lpcomp_v2.h
+cyip_pass.h - no dft_ctrl no pass_ctrl no dsab_dft
+cyip_peri.h - no div_8 no div_24_5
+cyip_sar.h - no dft_ctrl  no mux_switch1
+cyip_scb_v2.h - no cmd_resp
+cyip_spcif_v3.h - no nvl_wr_data
+cyip_tcpwm_v2.h
+cyip_wco.h - missing status, wdt_*
+
+
+
+
+cyip_srsslt is a very different beast. this driver will need to be remade for the psoc4200m
+
+* DFT_SELECT appears to be missing. PSOC_Creator generated code indicates DFT_SELECT at undocumented register (0x400b0110u)
+  * confirm values for DFT_SELECT in PSOC_CREATOR
+
+
+clk_dft_select actually exists
+no wdt_disable_key, wdt_counter or srss_intr*
+pwr_bg_trim1 exists 0x400bff10 and pwr_bg_trim2 at 0x400bff14
+no clk_imo_select reg
+pwr_pwrsys_trim1 exists at 0x400bff00
+clk_imo_trim3 exists
+tst_mode appears to exist, documented as a separate "block", but uses the same address as the 4100s.
+
+
+wdt_disable_key used by cy_wdt.h in Cy_WDT_IsEnabled, Cy_WDT_Enable, Cy_WDT_Disable. Easily replaced.
+wdt_counter used once in cy_wdt.h for Cy_WDT_GetCount. This is used in mcuboot\boot\cypress\libs\watchdog\watchdog.c
+srss_intr_mask used in cy_Wdt.h Cy_WDT_MaskInterrupt and Cy_WDT_UnmaskInterrupt and cy_wdt.c Cy_WDT_ClearInterrupt
+clk_imo_select used heavily in cy_sysclk.c - need an alternative clock driver? or disable certain imo related funcs.

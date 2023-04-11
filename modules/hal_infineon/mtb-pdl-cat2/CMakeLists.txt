@@ -19,15 +19,17 @@ zephyr_library_sources_ifdef(CONFIG_CPU_CORTEX_M0
 zephyr_library_sources_ifdef(CONFIG_CPU_CORTEX_M0PLUS
   ${pdl_drv_dir}/source/COMPONENT_CM0P/TOOLCHAIN_GCC_ARM/cy_syslib_gcc.S)
 
-zephyr_library_sources(${pdl_dev_dir}/templates/COMPONENT_MTB/system_cat2.c)
+if(!CONFIG_SOC_SERIES_PSOC42)
+  zephyr_library_sources(${pdl_dev_dir}/templates/COMPONENT_MTB/system_cat2.c)
+endif()
 
 # Peripheral drivers
 zephyr_library_sources_ifdef(CONFIG_USE_INFINEON_UART     ${pdl_drv_dir}/source/cy_scb_uart.c)
 zephyr_library_sources_ifdef(CONFIG_USE_INFINEON_ADC      ${pdl_drv_dir}/source/cy_sar.c)
 zephyr_library_sources_ifdef(CONFIG_USE_INFINEON_I2C      ${pdl_drv_dir}/source/cy_scb_i2c.c)
 zephyr_library_sources_ifdef(CONFIG_USE_INFINEON_SPI      ${pdl_drv_dir}/source/cy_scb_spi.c)
-zephyr_library_sources_ifdef(CONFIG_USE_INFINEON_TIMER    ${pdl_drv_dir}/source/cy_tcpwm_counter.c)
-zephyr_library_sources_ifdef(CONFIG_USE_INFINEON_PWM      ${pdl_drv_dir}/source/cy_tcpwm_pwm.c)
+# zephyr_library_sources_ifdef(CONFIG_USE_INFINEON_TIMER    ${pdl_drv_dir}/source/cy_tcpwm_counter.c)
+# zephyr_library_sources_ifdef(CONFIG_USE_INFINEON_PWM      ${pdl_drv_dir}/source/cy_tcpwm_pwm.c)
 #zephyr_library_sources_ifdef(CONFIG_USE_INFINEON_LPTIMER  ${pdl_drv_dir}/source/cy_mcwdt.c) -- no mcwdt in cat2? replace with cy_wdc??
 #zephyr_library_sources_ifdef(CONFIG_USE_INFINEON_RTC      ${pdl_drv_dir}/source/cy_rtc.c) -- no rtc in cat2?
 #zephyr_library_sources_ifdef(CONFIG_USE_INFINEON_SDIO     ${pdl_drv_dir}/source/cy_sd_host.c)
@@ -49,17 +51,16 @@ endif()
 
 # Common part
 zephyr_library_sources(${pdl_drv_dir}/source/cy_flash.c)
-zephyr_library_sources(${pdl_drv_dir}/source/cy_gpio.c)
-# zephyr_library_sources(${pdl_drv_dir}/source/cy_ipc_drv.c)
-# zephyr_library_sources(${pdl_drv_dir}/source/cy_ipc_pipe.c)
-# zephyr_library_sources(${pdl_drv_dir}/source/cy_ipc_sema.c)
-# zephyr_library_sources(${pdl_drv_dir}/source/cy_prot.c)
-zephyr_library_sources(${pdl_drv_dir}/source/cy_sysclk.c)
+# gpio needs a pinout header file and some definitions
+# zephyr_library_sources(${pdl_drv_dir}/source/cy_gpio.c)
+# sysclk is substantially different. need to disable for now.
+# zephyr_library_sources(${pdl_drv_dir}/source/cy_sysclk.c)
 zephyr_library_sources(${pdl_drv_dir}/source/cy_syslib.c)
-zephyr_library_sources(${pdl_drv_dir}/source/cy_syspm.c)
+# zephyr_library_sources(${pdl_drv_dir}/source/cy_syspm.c)
 zephyr_library_sources(${pdl_drv_dir}/source/cy_systick.c)
 zephyr_library_sources(${pdl_drv_dir}/source/cy_trigmux.c)
-zephyr_library_sources(${pdl_drv_dir}/source/cy_wdt.c)
+# wdt.c needs some love as well
+# zephyr_library_sources(${pdl_drv_dir}/source/cy_wdt.c)
 
 
 #want to add a kconfig option for cy_seglcd.c !!

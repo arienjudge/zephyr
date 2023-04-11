@@ -9,16 +9,19 @@
 #include <zephyr/arch/cpu.h>
 #include <zephyr/arch/arm/aarch32/cortex_m/cmsis.h>
 
+cy_israddress __RAM_VECTOR_TABLE[CY_VECTOR_TABLE_SIZE];
+const cy_israddress __VECTOR_TABLE[CY_VECTOR_TABLE_SIZE];
+
 void Cy_SystemInit(void)
 {
 	//stub
 }
 
-static int init_cycfg_platform_wraper(const struct device *arg)
+static int init_cycfg_platform_wrapper(const struct device *arg)
 {
 	ARG_UNUSED(arg);
-	SystemInit();
+	//SystemInit();
 	return 0;
 }
 
-SYS_INIT(init_cycfg_platform_wraper, PRE_KERNEL_1, 0);
+SYS_INIT(init_cycfg_platform_wrapper, PRE_KERNEL_1, 0);

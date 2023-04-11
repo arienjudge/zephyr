@@ -8,7 +8,7 @@
 #include <mem.h>
 #include <zephyr/dt-bindings/gpio/gpio.h>
 
-#include "psoc4-pinctrl.dtsi"
+/* #include "psoc4-pinctrl.dtsi" */
 
 / {
 	cpus {
@@ -24,135 +24,23 @@
 
 	/*check this*/
 	flash-controller@40100030 {
-			compatible = "cypress,psoc4-flash-controller";
-			reg = <0x40100030 0x4>;
+		compatible = "cypress,psoc4-flash-controller";
+		reg = <0x40100030 0x4>;
 
-			#address-cells = <1>;
-			#size-cells = <1>;
+		#address-cells = <1>;
+		#size-cells = <1>;
 
-			label="CYPRESS_FLASH_DRV_NAME";
-
-			flash0: flash@0 {
-				compatible = "soc-nv-flash";
-				label = "FLASH_0";
-				reg = <0x0 DT_SIZE_K(128)>;
-				erase-block-size = <128>
-				write-block-size = <128>;
-			};
+		flash0: flash@0 {
+			compatible = "soc-nv-flash";
+			label = "FLASH_0";
+			reg = <0x0 DT_SIZE_K(128)>;
+			erase-block-size = <128>;
+			write-block-size = <128>;
+		};
 	};
 
 	sram0: memory@20000000 {
 		compatible = "mmio-sram";
 		reg = <0x20000000 DT_SIZE_K(16)>;
-		zephyr,memory-region = "SRAM0";
 	};
-
-/*
-	soc {
-		pinctrl@40020000 {
-			compatible = "cypress,psoc4-pinctrl";
-			#address-cells = <1>;
-			#size-cells = <1>;
-			ranges = <0x40020000 0x40020000 0x2108>;
-
-			hsiom: hsiom@40020000 {
-				compatible = "cypress,psoc4-hsiom";
-				reg = <0x40020000 0x2108>;
-				/* interrupts = <15 1>, <16 1>; */
-				label = "HSIOM";
-				status = "disabled";
-			};
-
-			gpio_prt0: gpio@40040000 {
-				compatible = "cypress,psoc4-gpio";
-				reg = <0x40040000 0x80>;
-				interrupts = <0 1>;
-				label = "P0";
-				gpio-controller;
-				ngpios = <6>;
-				#gpio-cells = <2>;
-				#cypress,pin-cells = <2>;
-				status = "disabled";
-			};
-			gpio_prt1: gpio@40040100 {
-				compatible = "cypress,psoc4-gpio";
-				reg = <0x40040100 0x80>;
-				interrupts = <1 1>;
-				label = "P1";
-				gpio-controller;
-				ngpios = <6>;
-				#gpio-cells = <2>;
-				#cypress,pin-cells = <2>;
-				status = "disabled";
-			};
-			gpio_prt2: gpio@40040200 {
-				compatible = "cypress,psoc4-gpio";
-				reg = <0x40040200 0x80>;
-				interrupts = <2 1>;
-				label = "P2";
-				gpio-controller;
-				ngpios = <8>;
-				#gpio-cells = <2>;
-				#cypress,pin-cells = <2>;
-				status = "disabled";
-			};
-			gpio_prt3: gpio@40040300 {
-				compatible = "cypress,psoc4-gpio";
-				reg = <0x40040300 0x80>;
-				interrupts = <3 1>;
-				label = "P3";
-				gpio-controller;
-				ngpios = <6>;
-				#gpio-cells = <2>;
-				#cypress,pin-cells = <2>;
-				status = "disabled";
-			};
-			gpio_prt4: gpio@40040400 {
-				compatible = "cypress,psoc4-gpio";
-				reg = <0x40040400 0x80>;
-				interrupts = <4 1>;
-				label = "P4";
-				gpio-controller;
-				ngpios = <4>;
-				#gpio-cells = <2>;
-				#cypress,pin-cells = <2>;
-				status = "disabled";
-			};
-			gpio_prt5: gpio@40040500 {
-				compatible = "cypress,psoc4-gpio";
-				reg = <0x40040500 0x80>;
-				interrupts = <5 1>;
-				label = "P5";
-				gpio-controller;
-				ngpios = <8>;
-				#gpio-cells = <2>;
-				#cypress,pin-cells = <2>;
-				status = "disabled";
-			};
-			gpio_prt6: gpio@40040600 {
-				compatible = "cypress,psoc4-gpio";
-				reg = <0x40040600 0x80>;
-				interrupts = <6 1>;
-				label = "P6";
-				gpio-controller;
-				ngpios = <8>;
-				#gpio-cells = <2>;
-				#cypress,pin-cells = <2>;
-				status = "disabled";
-			};
-			gpio_prt7: gpio@40040700 {
-				compatible = "cypress,psoc4-gpio";
-				reg = <0x40040700 0x80>;
-				interrupts = <6 1>;
-				label = "P6";
-				gpio-controller;
-				ngpios = <8>;
-				#gpio-cells = <2>;
-				#cypress,pin-cells = <2>;
-				status = "disabled";
-			};
-		};
-	};
-*/
-
 };

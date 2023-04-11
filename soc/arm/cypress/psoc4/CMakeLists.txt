@@ -11,4 +11,4 @@ zephyr_sources(
 )
 
 zephyr_linker_sources_ifdef(CONFIG_SOC_FAMILY_PSOC4 NOINIT noinit.ld)
-zephyr_linker_sources_ifdef(CONFIG_SOC_FAMILY_PSOC4 RWDATA rwdata.ld)
+# zephyr_linker_sources_ifdef(CONFIG_SOC_FAMILY_PSOC4 RWDATA rwdata.ld)
